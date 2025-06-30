@@ -14,17 +14,17 @@ theta_ref = sin(2*pi*f*t);
 
 %% 3. Regulatori
 % P
-Kp_P = 0.5;
+Kp_P = 0.35;
 C_P = tf(Kp_P);
 
 % PD cu derivată internă
-Kp_PD = 0.1;
-Kd_PD = 1.5;
+Kp_PD = 3.88;
+Kd_PD = 0.07;
 C_PD = tf(Kp_PD) + tf(Kd_PD, [1 0]);
 
 % PI + Feed-Forward
-Kp_PI = 0.1;
-Ki_PI = 0.4;
+Kp_PI = 0.11;
+Ki_PI = 0.43;
 Kff = 0.07;
 C_PI = tf([Kp_PI Ki_PI], [1 0]);
 
