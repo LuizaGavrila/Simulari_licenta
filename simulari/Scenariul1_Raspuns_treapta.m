@@ -12,25 +12,27 @@ N = length(t);
 ref = 10*ones(1,N); % Referință constantă de 10 grade
 
 % Parametri funcție de transfer
-% G(s) = 14/(0.03s^2 + 0.4s + 1) * e^(-0.05s)
+% H(s) = 14/(0.03s^2 + 0.4s + 1) * e^(-0.05s)
 K = 14;          % Câștigul sistemului
 a = 0.03;        % Coeficient s^2
 b = 0.4;         % Coeficient s
 c = 1;           % Termen liber
 delay = 0.05;    % Întârziere [s]
 delay_samples = round(delay/dt); % Întârziere în eșantioane
+sys_delay = pade(tf(14, [0.03 0.4 1]), 2);  
+
 
 % Parametri regulatoare
 % Regulator P
-Kp_P = 1.5;
+Kp_P = 0.36;
 
 % Regulator PD
-Kp_PD = 1;
-Kd_PD = 0.5;
+Kp_PD = 3.87;
+Kd_PD = 0.07;
 
 % Regulator PI+FFW
-Kp_PI = 0.4;
-Ki_PI = 1.5;
+Kp_PI = 0.11;
+Ki_PI = 0.43;
 Kff =0.07;     
 
 % Inițializare vectori pentru stocarea rezultatelor
@@ -111,10 +113,19 @@ end
     error_PI(i) = ref(i-1) - theta_PI(i-1);
    integral_error = integral_error + error_PI(i)*dt;
   integral_error = min(max(integral_error, -0.2), 0.2);
+  % Anti-windup: limitare integrator
+if abs(integral_error) > 0.3
+    integral_error = sign(integral_error) * 0.3;
+end
+
 
     
  % Feed-Forward component (derivata referinței)
-    if i < 3
+   err_PI = ref(i-1) - theta_PI(i-1);
+ref_dot = [0 diff(ref)/dt];
+u_PI(i) = Kp_PI * err_PI + Ki_PI * integral_error + Kff * ref_dot(i);
+
+ if i < 3
     ref_dot = 0;
 else
     ref_dot = (ref(i) - ref(i-1)) / dt;
@@ -125,7 +136,6 @@ end
  %Control P
    u_P(i)=Kp_P*error_P(i);
  %Control PD
-%u_PD(i) = Kp_PD * error(i) + Kd_PD * error_dot;
  % Control PI+FFW
     u_PI(i) = Kp_PI * error_PI(i) + Ki_PI * integral_error + Kff * ref_dot;
     
